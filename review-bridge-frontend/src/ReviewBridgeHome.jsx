@@ -288,7 +288,11 @@ export default function ReviewBridgeHome() {
   const [activeNav, setActiveNav] = useState("Overview");
   const [searchFocused, setSearchFocused] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [dateRange, setDateRange] = useState("30d");
+  const [liveAlerts, setLiveAlerts] = useState(ALERTS);
   const searchRef = useRef(null);
+
+  const dismissAlert = (id) => setLiveAlerts(prev => prev.filter(a => a.id !== id));
 
   useEffect(() => {
     const style = document.createElement("style");
@@ -360,9 +364,9 @@ export default function ReviewBridgeHome() {
             </div>
             <div>
               <div style={{ fontSize:15, fontWeight:700, color:"#fff",
-                fontFamily:"'Sora',sans-serif", letterSpacing:"-0.01em" }}>ReviewBridge</div>
+                fontFamily:"'Sora',sans-serif", letterSpacing:"-0.01em" }}>LumIQ</div>
               <div style={{ fontSize:10, color:`${C.teal}bb`, fontFamily:"'DM Sans',sans-serif",
-                fontWeight:500 }}>Intelligence Platform</div>
+                fontWeight:500 }}>Review Intelligence</div>
             </div>
           </div>
         </div>
@@ -484,18 +488,51 @@ export default function ReviewBridgeHome() {
         {/* Top Header */}
         <header style={{
           background:C.bgCard, borderBottom:`1px solid ${C.border}`,
-          padding:"0 28px", height:68,
+          padding:"12px 28px", minHeight:82,
           display:"flex", alignItems:"center", gap:20, flexShrink:0,
           boxShadow:"0 1px 12px rgba(11,21,38,0.04)"
         }}>
           <div style={{ flex:1 }}>
-            <div style={{ fontSize:11, color:C.textMut, fontFamily:"'DM Sans',sans-serif", marginBottom:2 }}>
-              Good morning, Harsh 👋
+            <div style={{ fontSize:13, fontWeight:500, color:C.textSec, fontFamily:"'DM Sans',sans-serif", marginBottom:4 }}>
+              Welcome Harsh 👋
             </div>
-            <div style={{ fontSize:17, fontWeight:700, color:C.textPri,
+            <div style={{ fontSize:19, fontWeight:700, color:C.textPri,
               fontFamily:"'Sora',sans-serif", letterSpacing:"-0.01em" }}>
               Product Intelligence Overview
             </div>
+          </div>
+
+          {/* Date Range Picker */}
+          <div style={{
+            display:"flex", gap:3,
+            background:C.bg, padding:4, borderRadius:10,
+            border:`1px solid ${C.border}`
+          }}>
+            {[{key:"7d",label:"7D"},{key:"30d",label:"30D"},{key:"90d",label:"90D"},{key:"1y",label:"1Y"}].map(r => {
+              const active = dateRange === r.key;
+              return (
+                <button key={r.key} onClick={() => setDateRange(r.key)} style={{
+                  padding:"6px 12px", borderRadius:7, border:"none", cursor:"pointer",
+                  background: active ? C.navy : "transparent",
+                  color: active ? "#fff" : C.textSec,
+                  fontSize:11, fontWeight: active ? 700 : 500,
+                  fontFamily:"'Sora',sans-serif",
+                  transition:"all 0.18s",
+                  letterSpacing:"0.02em"
+                }}>{r.label}</button>
+              );
+            })}
+            <button style={{
+              padding:"6px 10px", borderRadius:7, border:"none", cursor:"pointer",
+              background:"transparent", color:C.textSec,
+              fontSize:11, fontWeight:500, fontFamily:"'DM Sans',sans-serif",
+              display:"flex", alignItems:"center", gap:5, transition:"all 0.18s"
+            }}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+              </svg>
+              Custom
+            </button>
           </div>
 
           {/* Search */}
@@ -716,20 +753,26 @@ export default function ReviewBridgeHome() {
                     fontSize:10, fontWeight:700, color:C.coral,
                     background:C.coralDim, padding:"2px 8px", borderRadius:99,
                     fontFamily:"'Sora',sans-serif"
-                  }}>{ALERTS.length} new</span>
+                  }}>{liveAlerts.length} new</span>
                 </div>
                 <div>
-                  {ALERTS.map((a, i) => {
+                  {liveAlerts.length === 0 ? (
+                    <div style={{ padding:"24px 18px", textAlign:"center" }}>
+                      <div style={{ fontSize:20, marginBottom:6 }}>✅</div>
+                      <div style={{ fontSize:12, color:C.textMut, fontFamily:"'DM Sans',sans-serif" }}>All clear — no active alerts</div>
+                    </div>
+                  ) : liveAlerts.map((a, i) => {
                     const ic = { critical:C.coral, warning:C.amber, info:C.teal }[a.type];
                     return (
                       <div key={a.id} style={{
                         padding:"13px 18px",
-                        borderBottom: i < ALERTS.length-1 ? `1px solid ${C.border}` : "none",
+                        borderBottom: i < liveAlerts.length-1 ? `1px solid ${C.border}` : "none",
                         cursor:"pointer",
-                        transition:"background 0.15s"
+                        transition:"background 0.15s",
+                        position:"relative"
                       }}
-                      onMouseEnter={e => e.currentTarget.style.background = C.bg}
-                      onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
+                      onMouseEnter={e => { e.currentTarget.style.background = C.bg; e.currentTarget.querySelector('.dismiss-btn').style.opacity = '1'; }}
+                      onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.querySelector('.dismiss-btn').style.opacity = '0'; }}>
                         <div style={{ display:"flex", gap:10 }}>
                           <div style={{ width:7, height:7, borderRadius:"50%", background:ic,
                             marginTop:5, flexShrink:0 }}/>
@@ -746,6 +789,20 @@ export default function ReviewBridgeHome() {
                             <div style={{ fontSize:10, color:C.textMut,
                               fontFamily:"'DM Sans',sans-serif" }}>{a.time}</div>
                           </div>
+                          <button className="dismiss-btn" onClick={(e) => { e.stopPropagation(); dismissAlert(a.id); }} style={{
+                            position:"absolute", top:10, right:12,
+                            width:22, height:22, borderRadius:6,
+                            border:`1px solid ${C.border}`, background:C.bgCard,
+                            cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center",
+                            color:C.textMut, opacity:0, transition:"opacity 0.15s, background 0.15s",
+                            fontSize:12, fontWeight:600, lineHeight:1, padding:0
+                          }}
+                          onMouseEnter={e => e.currentTarget.style.background = C.coralDim}
+                          onMouseLeave={e => e.currentTarget.style.background = C.bgCard}>
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round">
+                              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                            </svg>
+                          </button>
                         </div>
                       </div>
                     );
@@ -753,57 +810,41 @@ export default function ReviewBridgeHome() {
                 </div>
               </div>
 
-              {/* Platform breakdown */}
+              {/* Platform Sentiment */}
               <div style={{
                 background:C.bgCard, borderRadius:16, border:`1px solid ${C.border}`,
                 overflow:"hidden", boxShadow:"0 2px 12px rgba(11,21,38,0.04)"
               }}>
                 <div style={{ padding:"16px 18px", borderBottom:`1px solid ${C.border}` }}>
                   <span style={{ fontSize:13, fontWeight:600, color:C.textPri,
-                    fontFamily:"'Sora',sans-serif" }}>Platform Split</span>
+                    fontFamily:"'Sora',sans-serif" }}>Sentiment by Platform</span>
                 </div>
-                <div style={{ padding:"16px 18px", display:"flex", flexDirection:"column", gap:12 }}>
+                <div style={{ padding:"16px 18px", display:"flex", flexDirection:"column", gap:14 }}>
                   {Object.entries(PLATFORMS).map(([key, p]) => {
-                    const count = PRODUCTS.filter(pr => pr.platform === key).length;
-                    const pct = Math.round((count / PRODUCTS.length) * 100);
-                    if (count === 0) return null;
+                    const platProducts = PRODUCTS.filter(pr => pr.platform === key);
+                    if (platProducts.length === 0) return null;
+                    const avgSent = Math.round(platProducts.reduce((s, pr) => s + pr.sentiment, 0) / platProducts.length);
+                    const sentColor = avgSent >= 75 ? C.teal : avgSent >= 50 ? C.amber : C.coral;
                     return (
                       <div key={key}>
                         <div style={{ display:"flex", justifyContent:"space-between",
-                          alignItems:"center", marginBottom:5 }}>
-                          <span style={{ fontSize:12, fontWeight:500, color:C.textPri,
-                            fontFamily:"'DM Sans',sans-serif" }}>{p.label}</span>
-                          <span style={{ fontSize:11, color:C.textMut,
-                            fontFamily:"'Sora',sans-serif", fontWeight:600 }}>{count} · {pct}%</span>
+                          alignItems:"center", marginBottom:6 }}>
+                          <div style={{ display:"flex", alignItems:"center", gap:7 }}>
+                            <div style={{ width:8, height:8, borderRadius:"50%", background:p.color }}/>
+                            <span style={{ fontSize:12, fontWeight:500, color:C.textPri,
+                              fontFamily:"'DM Sans',sans-serif" }}>{p.label}</span>
+                          </div>
+                          <span style={{ fontSize:12, fontWeight:700, color:sentColor,
+                            fontFamily:"'Sora',sans-serif" }}>{avgSent}%</span>
                         </div>
                         <div style={{ height:5, background:C.border, borderRadius:99, overflow:"hidden" }}>
-                          <div style={{ height:"100%", width:`${pct}%`, borderRadius:99,
-                            background:p.color, transition:"width 1s cubic-bezier(0.4,0,0.2,1)" }}/>
+                          <div style={{ height:"100%", width:`${avgSent}%`, borderRadius:99,
+                            background:`linear-gradient(90deg, ${sentColor}, ${sentColor}bb)`,
+                            transition:"width 1s cubic-bezier(0.4,0,0.2,1)" }}/>
                         </div>
                       </div>
                     );
                   })}
-                </div>
-
-                {/* Quick action */}
-                <div style={{ padding:"0 18px 18px" }}>
-                  <button style={{
-                    width:"100%", padding:"11px", borderRadius:10,
-                    background:C.navy, border:"none", cursor:"pointer",
-                    color:"#fff", fontSize:13, fontWeight:600,
-                    fontFamily:"'Sora',sans-serif",
-                    display:"flex", alignItems:"center", justifyContent:"center", gap:8,
-                    transition:"background 0.2s",
-                    boxShadow:`0 4px 14px rgba(11,21,38,0.2)`
-                  }}
-                  onMouseEnter={e => e.currentTarget.style.background = C.navyMid}
-                  onMouseLeave={e => e.currentTarget.style.background = C.navy}>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                      <polyline points="14 2 14 8 20 8"/>
-                    </svg>
-                    Generate Report
-                  </button>
                 </div>
               </div>
 
@@ -817,12 +858,34 @@ export default function ReviewBridgeHome() {
               Last synced · 2 minutes ago
             </span>
             <span style={{ fontSize:11, color:C.textMut, fontFamily:"'DM Sans',sans-serif" }}>
-              ReviewBridge v0.9 · MVP Build
+              LumIQ v1.0
             </span>
           </div>
 
         </div>
       </main>
+
+      {/* Floating Generate Report Button */}
+      <button style={{
+        position:"fixed", bottom:28, right:32, zIndex:100,
+        padding:"13px 26px", borderRadius:14,
+        background:`linear-gradient(135deg, ${C.teal}, ${C.tealDim})`,
+        border:"none", cursor:"pointer",
+        color:"#fff", fontSize:14, fontWeight:700,
+        fontFamily:"'Sora',sans-serif",
+        display:"flex", alignItems:"center", gap:10,
+        boxShadow:`0 8px 30px rgba(0,201,167,0.35), 0 2px 8px rgba(0,0,0,0.10)`,
+        transition:"transform 0.2s, box-shadow 0.2s",
+        letterSpacing:"-0.01em"
+      }}
+      onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = `0 12px 40px rgba(0,201,167,0.45), 0 4px 12px rgba(0,0,0,0.12)`; }}
+      onMouseLeave={e => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = `0 8px 30px rgba(0,201,167,0.35), 0 2px 8px rgba(0,0,0,0.10)`; }}>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+        </svg>
+        Generate Report
+      </button>
     </div>
   );
 }
