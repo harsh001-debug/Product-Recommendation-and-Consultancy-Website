@@ -41,7 +41,7 @@ const T = {
 };
 
 // ── Competitor colors (each gets a unique identity) ─────────
-const COMP_COLORS = ["#E07B54","#A78BFA","#38BDF8","#F472B6"];
+const COMP_COLORS = ["#E07B54","#A78BFA","#38BDF8","#F472B6","#8B7FFF"];
 
 // ══════════════════════════════════════════════════════════════
 //  MOCK DATA  —  replace with API responses
@@ -54,6 +54,7 @@ const MOCK_YOUR_BRAND = {
     { id:"p2", name:"Cold Press Juicer 800W",   sku:"SKU-5590", category:"Appliances",  sentiment:91, rating:4.6, reviews:3672, trend:+11.3 },
     { id:"p3", name:"SPF 50+ Sunscreen 100ml",  sku:"SKU-7741", category:"Skincare",    sentiment:34, rating:2.9, reviews:887,  trend:-18.7 },
     { id:"p4", name:"Bamboo Yoga Mat 6mm",      sku:"SKU-3312", category:"Fitness",     sentiment:61, rating:3.8, reviews:1204, trend:-4.1 },
+    { id:"p5", name:"DNA Ancestry Test Kit",    sku:"SKU-1092", category:"Biotech",     sentiment:88, rating:4.5, reviews:1043, trend:+4.5 },
   ]
 };
 
@@ -95,11 +96,46 @@ const MOCK_COMPETITORS = [
       { id:"cp9",  name:"SlowPress Juicer 900W", sentiment:88, rating:4.6, reviews:12400, trend:+7.8 },
       { id:"cp10", name:"ColdMaster Juicer 750W",sentiment:82, rating:4.3, reviews:8800,  trend:+3.2 },
     ]
+  },
+  {
+    id:"c5", name:"GeneGuard Biotech", color:COMP_COLORS[4], logo:"G",
+    overallSentiment:82, avgRating:4.4, totalReviews:12500, market:"Biotech",
+    tagline:"Personalised genetics & health kits",
+    products:[
+      { id:"cp11", name:"GeneScan Ancestry & Health", sentiment:84, rating:4.4, reviews:6200, trend:+3.6 },
+      { id:"cp12", name:"GeneScan Carrier Status Kit", sentiment:80, rating:4.2, reviews:4100, trend:+1.5 }
+    ]
   }
 ];
 
 // Mock detailed comparison data
 const MOCK_COMPARISON = {
+  "p5_cp11": {
+    yourTopPraise:    ["Highly detailed ancestry breakdown", "Simple cheek-swab collection", "Fast 2-week processing"],
+    yourTopIssues:    ["Privacy concerns", "App interface clunky", "Premium pricing"],
+    theirTopPraise:   ["Comprehensive health reports", "Easy to register kit", "Good customer support"],
+    theirTopIssues:   ["Took 6 weeks for results", "Reports hard to interpret", "Confusing raw data export"],
+    yourReviews: [
+      { text:"The ancestry breakdown was amazingly detailed. Understood my maternal lineage completely. Swab was super simple.", rating:5, platform:"Amazon", date:"2d ago" },
+      { text:"Concerned about where my genetic data is stored. The app requires too many permissions.", rating:3, platform:"Google", date:"4d ago" },
+      { text:"Got my results in exactly 12 days. Very impressed with the quick turnaround.", rating:5, platform:"Amazon", date:"1w ago" },
+    ],
+    theirReviews: [
+      { text:"Loved the health reports, but it took almost 7 weeks to get the email that my results were ready.", rating:3, platform:"Amazon", date:"3d ago" },
+      { text:"The report uses too much medical jargon. I had to Google half the terms to understand my risk levels.", rating:2, platform:"Google", date:"5d ago" },
+      { text:"Excellent customer support when my kit got lost in the mail. They sent a replacement free.", rating:4, platform:"Amazon", date:"1w ago" },
+    ],
+    aiAnalysis: {
+      verdict: "🏆 Processing Speed Advantage — You are beating them on convenience.",
+      summary: "Your DNA Ancestry Test Kit is capturing significant market share due to your 2-week turnaround time (which customers praise heavily) compared to GeneScan's 6-week delay. However, GeneGuard's genetic health reporting is perceived as more comprehensive. Your primary threat is data privacy concerns and clunky app UX, which accounts for 24% of your negative feedback. If you clarify your data deletion policy and streamline app onboarding, you will secure a dominant market lead.",
+      actions: [
+        { priority:"high",  text:"Launch a prominent 'Privacy-First' marketing campaign highlighting your strict data-encryption & 1-click deletion options." },
+        { priority:"high",  text:"Redesign the genetic report dashboard in your mobile app to resolve clunky navigation issues." },
+        { priority:"med",   text:"Introduce basic wellness and health reports to directly challenge GeneGuard's feature set." },
+        { priority:"low",   text:"Highlight the 2-week turnaround advantage in Amazon product listings." },
+      ]
+    }
+  },
   "p1_cp1": {
     yourTopPraise:    ["Excellent sound quality","Long battery life","Comfortable fit"],
     yourTopIssues:    ["Bluetooth range","Touch controls unreliable","Case build quality"],

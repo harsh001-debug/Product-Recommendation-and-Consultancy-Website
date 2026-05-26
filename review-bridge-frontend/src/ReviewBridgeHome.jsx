@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, createContext, useContext } from "react";
 import CompetitorPage from "./CompetitorPage";
+import ReviewAgent from "./ReviewAgent";
 
 const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap');`;
 
@@ -101,9 +102,10 @@ const NAV = [
   { icon:"⬡", label:"Overview",    active: true  },
   { icon:"⬡", label:"Products",    active: false },
   { icon:"⬡", label:"Analytics",   active: false },
-  { icon:"⬡", label:"Competitors", active: false },
-  { icon:"⬡", label:"Reports",     active: false },
-  { icon:"⬡", label:"Settings",    active: false },
+  { icon:"⬡", label:"Competitors",   active: false },
+  { icon:"⬡", label:"Review Agent",  active: false },
+  { icon:"⬡", label:"Reports",       active: false },
+  { icon:"⬡", label:"Settings",      active: false },
 ];
 
 const NAV_ICONS = {
@@ -111,6 +113,7 @@ const NAV_ICONS = {
   "Products":    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>,
   "Analytics":   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>,
   "Competitors": <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>,
+  "Review Agent":<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v2"/><path d="M12 21v2"/><path d="M4.22 4.22l1.42 1.42"/><path d="M18.36 18.36l1.42 1.42"/><path d="M1 12h2"/><path d="M21 12h2"/><path d="M4.22 19.78l1.42-1.42"/><path d="M18.36 5.64l1.42-1.42"/></svg>,
   "Reports":     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>,
   "Settings":    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>,
 };
@@ -335,6 +338,26 @@ export default function ReviewBridgeHome() {
   const [darkMode, setDarkMode] = useState(() => {
     try { return localStorage.getItem("lumiq-dark-mode") === "true"; } catch { return false; }
   });
+  const [user, setUser] = useState(() => {
+    try {
+      const saved = localStorage.getItem("lumiq-user-details");
+      return saved ? JSON.parse(saved) : {
+        name: "Harsh Sharma",
+        email: "harsh@novabrand.co",
+        role: "Brand Analyst",
+        plan: "Enterprise"
+      };
+    } catch {
+      return {
+        name: "Harsh Sharma",
+        email: "harsh@novabrand.co",
+        role: "Brand Analyst",
+        plan: "Enterprise"
+      };
+    }
+  });
+  const [isEditingAccount, setIsEditingAccount] = useState(false);
+  const [editUser, setEditUser] = useState({ ...user });
   const searchRef = useRef(null);
 
   const T = darkMode ? DARK : LIGHT;
@@ -515,25 +538,23 @@ export default function ReviewBridgeHome() {
             </div>
           </div>
         </nav>
-
         {/* Profile */}
         <div style={{
           padding:"16px 22px", borderTop:`1px solid ${T.navyLight}`,
           display:"flex", alignItems:"center", gap:12
         }}>
           <div style={{
-            width:38, height:38, borderRadius:10, flexShrink:0,
-            background:`linear-gradient(135deg, ${T.teal}, #0099CC)`,
+            width:36, height:36, borderRadius:10, background:"rgba(255,255,255,0.08)",
             display:"flex", alignItems:"center", justifyContent:"center",
             fontSize:15, fontWeight:700, color:"#fff", fontFamily:"'Sora',sans-serif",
             border:`2px solid ${T.tealGlow}`
-          }}>H</div>
+          }}>{user.name ? user.name.charAt(0).toUpperCase() : "U"}</div>
           <div style={{ flex:1, minWidth:0 }}>
             <div style={{ fontSize:13, fontWeight:600, color:"#fff",
               fontFamily:"'Sora',sans-serif", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
-              Harsh Sharma
+              {user.name}
             </div>
-            <div style={{ fontSize:10, color:"#ffffff50", fontFamily:"'DM Sans',sans-serif" }}>Brand Analyst</div>
+            <div style={{ fontSize:10, color:"#ffffff50", fontFamily:"'DM Sans',sans-serif" }}>{user.role}</div>
           </div>
           <button style={{ background:"none", border:"none", cursor:"pointer", color:"#ffffff40", padding:4 }}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -555,7 +576,7 @@ export default function ReviewBridgeHome() {
         }}>
           <div style={{ flex:1 }}>
             <div style={{ fontSize:13, fontWeight:500, color:T.textSec, fontFamily:"'DM Sans',sans-serif", marginBottom:4 }}>
-              Welcome Harsh 👋
+              Welcome {user.name.split(" ")[0] || "User"} 👋
             </div>
             <div style={{ fontSize:19, fontWeight:700, color:T.textPri,
               fontFamily:"'Sora',sans-serif", letterSpacing:"-0.01em" }}>
@@ -676,7 +697,7 @@ export default function ReviewBridgeHome() {
         </header>
 
         {/* Content */}
-        <div style={{ flex:1, overflowY:"auto", padding: activeNav === "Competitors" ? "0" : "24px 28px" }}>
+        <div style={{ flex:1, overflowY:"auto", padding: (activeNav === "Competitors" || activeNav === "Review Agent") ? "0" : "24px 28px" }}>
 
         {activeNav === "Settings" ? (
           /* ── Settings Panel ───────────────────────────────────── */
@@ -776,39 +797,170 @@ export default function ReviewBridgeHome() {
               </div>
             </div>
 
-            {/* Account Card (placeholder) */}
-            <div style={{
-              background:T.bgCard, borderRadius:16, border:`1px solid ${T.border}`,
-              overflow:"hidden", boxShadow:"0 2px 12px rgba(11,21,38,0.04)", marginBottom:16
-            }}>
+            {/* Account Card */}
+            {!isEditingAccount ? (
               <div style={{
-                padding:"18px 22px", borderBottom:`1px solid ${T.border}`,
-                display:"flex", alignItems:"center", gap:10
+                background:T.bgCard, borderRadius:16, border:`1px solid ${T.border}`,
+                overflow:"hidden", boxShadow:"0 2px 12px rgba(11,21,38,0.04)", marginBottom:16
               }}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={T.textPri} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
-                </svg>
-                <span style={{ fontSize:14, fontWeight:600, color:T.textPri,
-                  fontFamily:"'Sora',sans-serif" }}>Account</span>
-              </div>
-              <div style={{ padding:"20px 22px", display:"flex", flexDirection:"column", gap:16 }}>
-                {[
-                  { label:"Name", value:"Harsh Sharma" },
-                  { label:"Email", value:"harsh@novabrand.co" },
-                  { label:"Role", value:"Brand Analyst" },
-                  { label:"Plan", value:"Enterprise" },
-                ].map(item => (
-                  <div key={item.label} style={{
-                    display:"flex", justifyContent:"space-between", alignItems:"center",
-                    padding:"12px 16px", borderRadius:10,
-                    background:T.bg, border:`1px solid ${T.border}`
-                  }}>
-                    <span style={{ fontSize:12, color:T.textSec, fontFamily:"'DM Sans',sans-serif", fontWeight:500 }}>{item.label}</span>
-                    <span style={{ fontSize:13, color:T.textPri, fontFamily:"'Sora',sans-serif", fontWeight:600 }}>{item.value}</span>
+                <div style={{
+                  padding:"18px 22px", borderBottom:`1px solid ${T.border}`,
+                  display:"flex", alignItems:"center", justifyContent:"space-between"
+                }}>
+                  <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={T.textPri} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+                    </svg>
+                    <span style={{ fontSize:14, fontWeight:600, color:T.textPri,
+                      fontFamily:"'Sora',sans-serif" }}>Account</span>
                   </div>
-                ))}
+                  <button
+                    onClick={() => {
+                      setEditUser({ ...user });
+                      setIsEditingAccount(true);
+                    }}
+                    style={{
+                      background:"transparent", border:`1px solid ${T.border}`,
+                      padding:"6px 12px", borderRadius:8, fontSize:12, fontWeight:600,
+                      color: T.teal, cursor:"pointer", display:"flex", alignItems:"center", gap:6,
+                      transition:"all 0.2s", fontFamily:"'DM Sans',sans-serif"
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.borderColor = T.teal; e.currentTarget.style.background = `${T.teal}08`; }}
+                    onMouseLeave={e => { e.currentTarget.style.borderColor = T.border; e.currentTarget.style.background = "transparent"; }}
+                  >
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+                    </svg>
+                    Edit Details
+                  </button>
+                </div>
+                <div style={{ padding:"20px 22px", display:"flex", flexDirection:"column", gap:16 }}>
+                  {[
+                    { label:"Name", value:user.name },
+                    { label:"Email", value:user.email },
+                    { label:"Role", value:user.role },
+                    { label:"Plan", value:user.plan },
+                  ].map(item => (
+                    <div key={item.label} style={{
+                      display:"flex", justifyContent:"space-between", alignItems:"center",
+                      padding:"12px 16px", borderRadius:10,
+                      background:T.bg, border:`1px solid ${T.border}`
+                    }}>
+                      <span style={{ fontSize:12, color:T.textSec, fontFamily:"'DM Sans',sans-serif", fontWeight:500 }}>{item.label}</span>
+                      <span style={{ fontSize:13, color:T.textPri, fontFamily:"'Sora',sans-serif", fontWeight:600 }}>{item.value}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
+            ) : (
+              <div style={{
+                background:T.bgCard, borderRadius:16, border:`1px solid ${T.border}`,
+                overflow:"hidden", boxShadow:"0 2px 12px rgba(11,21,38,0.04)", marginBottom:16
+              }}>
+                <div style={{
+                  padding:"18px 22px", borderBottom:`1px solid ${T.border}`,
+                  display:"flex", alignItems:"center", gap:10
+                }}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={T.textPri} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+                  </svg>
+                  <span style={{ fontSize:14, fontWeight:600, color:T.textPri,
+                    fontFamily:"'Sora',sans-serif" }}>Edit Account Details</span>
+                </div>
+                <div style={{ padding:"20px 22px", display:"flex", flexDirection:"column", gap:16 }}>
+                  <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
+                    <label style={{ fontSize:11, color:T.textSec, fontFamily:"'DM Sans',sans-serif", fontWeight:600 }}>NAME</label>
+                    <input
+                      value={editUser.name}
+                      onChange={e => setEditUser(prev => ({ ...prev, name: e.target.value }))}
+                      style={{
+                        padding:"10px 14px", border:`1.5px solid ${T.border}`, borderRadius:8,
+                        fontSize:13, fontFamily:"'DM Sans',sans-serif", color:T.textPri, background:T.bg,
+                        outline:"none", transition:"border-color 0.2s"
+                      }}
+                      onFocus={e => e.target.style.borderColor = T.teal}
+                      onBlur={e => e.target.style.borderColor = T.border}
+                    />
+                  </div>
+                  <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
+                    <label style={{ fontSize:11, color:T.textSec, fontFamily:"'DM Sans',sans-serif", fontWeight:600 }}>EMAIL ADDRESS</label>
+                    <input
+                      type="email"
+                      value={editUser.email}
+                      onChange={e => setEditUser(prev => ({ ...prev, email: e.target.value }))}
+                      style={{
+                        padding:"10px 14px", border:`1.5px solid ${T.border}`, borderRadius:8,
+                        fontSize:13, fontFamily:"'DM Sans',sans-serif", color:T.textPri, background:T.bg,
+                        outline:"none", transition:"border-color 0.2s"
+                      }}
+                      onFocus={e => e.target.style.borderColor = T.teal}
+                      onBlur={e => e.target.style.borderColor = T.border}
+                    />
+                  </div>
+                  <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
+                    <label style={{ fontSize:11, color:T.textSec, fontFamily:"'DM Sans',sans-serif", fontWeight:600 }}>ROLE</label>
+                    <input
+                      value={editUser.role}
+                      onChange={e => setEditUser(prev => ({ ...prev, role: e.target.value }))}
+                      style={{
+                        padding:"10px 14px", border:`1.5px solid ${T.border}`, borderRadius:8,
+                        fontSize:13, fontFamily:"'DM Sans',sans-serif", color:T.textPri, background:T.bg,
+                        outline:"none", transition:"border-color 0.2s"
+                      }}
+                      onFocus={e => e.target.style.borderColor = T.teal}
+                      onBlur={e => e.target.style.borderColor = T.border}
+                    />
+                  </div>
+                  <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
+                    <label style={{ fontSize:11, color:T.textSec, fontFamily:"'DM Sans',sans-serif", fontWeight:600 }}>PLAN</label>
+                    <select
+                      value={editUser.plan}
+                      onChange={e => setEditUser(prev => ({ ...prev, plan: e.target.value }))}
+                      style={{
+                        padding:"10px 14px", border:`1.5px solid ${T.border}`, borderRadius:8,
+                        fontSize:13, fontFamily:"'DM Sans',sans-serif", color:T.textPri, background:T.bg,
+                        outline:"none", cursor:"pointer"
+                      }}
+                    >
+                      <option value="Free">Free</option>
+                      <option value="Starter">Starter</option>
+                      <option value="Professional">Professional</option>
+                      <option value="Enterprise">Enterprise</option>
+                    </select>
+                  </div>
+                  <div style={{ display:"flex", gap:10, justifyContent:"flex-end", marginTop:10 }}>
+                    <button
+                      onClick={() => setIsEditingAccount(false)}
+                      style={{
+                        padding:"8px 16px", borderRadius:8, border:`1px solid ${T.border}`,
+                        background:"transparent", color:T.textSec, fontSize:13, fontWeight:500,
+                        cursor:"pointer", fontFamily:"'DM Sans',sans-serif", transition:"all 0.2s"
+                      }}
+                      onMouseEnter={e => e.currentTarget.style.color = T.textPri}
+                      onMouseLeave={e => e.currentTarget.style.color = T.textSec}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={() => {
+                        setUser(editUser);
+                        try { localStorage.setItem("lumiq-user-details", JSON.stringify(editUser)); } catch {}
+                        setIsEditingAccount(false);
+                      }}
+                      style={{
+                        padding:"8px 18px", borderRadius:8, border:"none",
+                        background:`linear-gradient(135deg, ${T.teal}, ${T.tealDim})`,
+                        color:"#fff", fontSize:13, fontWeight:600,
+                        cursor:"pointer", fontFamily:"'DM Sans',sans-serif",
+                        boxShadow:`0 2px 8px ${T.tealGlow}`
+                      }}
+                    >
+                      Save Changes
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Notifications Card */}
             <div style={{
@@ -858,6 +1010,8 @@ export default function ReviewBridgeHome() {
           </div>
         ) : activeNav === "Competitors" ? (
           <CompetitorPage />
+        ) : activeNav === "Review Agent" ? (
+          <ReviewAgent />
         ) : (
           <>
 
