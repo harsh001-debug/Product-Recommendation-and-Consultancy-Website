@@ -17,7 +17,7 @@ const T = {
 };
 
 // ── Gemini API config ───────────────────────────────────────
-const GEMINI_API_KEY = "AIzaSyApMmfemJox1KBqNC2481ML0r6fFh44IJ8";
+const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || "";
 const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${GEMINI_API_KEY}`;
 
 const PLATFORMS = [
@@ -117,6 +117,14 @@ export default function ReviewAgent() {
     const plat = PLATFORMS.find(p => p.id === platform);
 
     setPhase("running"); setStepIdx(0); setLogs([]); setResult(null); setRawText("");
+
+    if (!GEMINI_API_KEY) {
+      addLog(`Error: Gemini API Key not found.`, "error");
+      addLog(`Please create a '.env' file in the project root and add:`, "error");
+      addLog(`VITE_GEMINI_API_KEY=your_actual_key_here`, "error");
+      setPhase("error");
+      return;
+    }
 
     // ── STEP 0: Connect ─────────────────────────────────────
     addLog(`Initialising LumIQ Review Agent v1.0`, "system");
@@ -398,7 +406,14 @@ Only include reviews you actually found in the search results. If fewer than 3 r
           {/* Quick examples */}
           <div style={{ marginTop:16, display:"flex", gap:8, flexWrap:"wrap", alignItems:"center" }}>
             <span style={{ fontSize:12, color:T.text3, fontFamily:T.b }}>Try:</span>
-            {["boAt Airdopes 141","Noise ColorFit Pro 4","Mamaearth Vitamin C Face Wash","Samsung Galaxy M35"].map(ex => (
+            {[
+              "DNA Ancestry Test Kit",
+              "Continuous Glucose Monitor",
+              "Novozymes Lipase Enzyme",
+              "Organic Probiotic Supplement",
+              "Mamaearth Vitamin C Face Wash",
+              "boAt Airdopes 141"
+            ].map(ex => (
               <button key={ex} onClick={() => setProduct(ex)} style={{
                 padding:"5px 12px", background:T.surface, border:`1px solid ${T.border}`,
                 borderRadius:99, color:T.text2, fontSize:12, cursor:"pointer", fontFamily:T.b,
