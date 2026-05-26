@@ -1,4 +1,4 @@
-# ReviewBridge - Intelligence Platform Frontend
+# LumIQ - Intelligence Platform Frontend
 
 This repository contains the frontend component for the ReviewBridge consultancy platform. It is a single-page React application built with Vite that visualizes product reviews and analytics.
 
