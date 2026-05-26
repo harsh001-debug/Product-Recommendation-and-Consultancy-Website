@@ -1,8 +1,11 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, createContext, useContext } from "react";
+import CompetitorPage from "./CompetitorPage";
 
 const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap');`;
 
-const C = {
+const ThemeContext = createContext({ dark: false });
+
+const LIGHT = {
   navy:       "#0B1526",
   navyMid:    "#142038",
   navyLight:  "#1E3050",
@@ -25,6 +28,38 @@ const C = {
   greenDim:   "rgba(34,197,94,0.12)",
   redDim:     "rgba(255,96,88,0.12)",
 };
+
+const DARK = {
+  navy:       "#0B1526",
+  navyMid:    "#142038",
+  navyLight:  "#1E3050",
+  teal:       "#00C9A7",
+  tealDim:    "#00A88A",
+  tealGlow:   "rgba(0,201,167,0.18)",
+  amber:      "#F5A623",
+  amberDim:   "#E6920E",
+  coral:      "#FF6058",
+  coralDim:   "rgba(255,96,88,0.18)",
+  violet:     "#7B61FF",
+  bg:         "#0D1117",
+  bgCard:     "#161B22",
+  border:     "#30363D",
+  borderDark: "#484F58",
+  textPri:    "#E6EDF3",
+  textSec:    "#8B949E",
+  textMut:    "#6E7681",
+  green:      "#22C55E",
+  greenDim:   "rgba(34,197,94,0.18)",
+  redDim:     "rgba(255,96,88,0.18)",
+};
+
+function useThemeColors() {
+  const { dark } = useContext(ThemeContext);
+  return dark ? DARK : LIGHT;
+}
+
+// Keep C as default for non-component code
+const C = LIGHT;
 
 const PLATFORMS = {
   amazon:     { label: "Amazon",     color: "#FF9900", bg: "#FFF4E0" },
@@ -81,30 +116,32 @@ const NAV_ICONS = {
 };
 
 function StarRating({ rating }) {
+  const T = useThemeColors();
   return (
     <div style={{ display:"flex", alignItems:"center", gap:2 }}>
       {[1,2,3,4,5].map(i => (
         <svg key={i} width="11" height="11" viewBox="0 0 24 24"
-          fill={i <= Math.round(rating) ? C.amber : "#E4EAF4"}
-          stroke={i <= Math.round(rating) ? C.amber : "#D0DAF0"}
+          fill={i <= Math.round(rating) ? T.amber : T.border}
+          stroke={i <= Math.round(rating) ? T.amber : T.borderDark}
           strokeWidth="1.5">
           <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
         </svg>
       ))}
-      <span style={{ fontSize:11, fontWeight:600, color:C.textPri, marginLeft:3, fontFamily:"'Sora',sans-serif" }}>{rating.toFixed(1)}</span>
+      <span style={{ fontSize:11, fontWeight:600, color:T.textPri, marginLeft:3, fontFamily:"'Sora',sans-serif" }}>{rating.toFixed(1)}</span>
     </div>
   );
 }
 
 function SentimentBar({ value }) {
-  const color = value >= 75 ? C.teal : value >= 50 ? C.amber : C.coral;
+  const T = useThemeColors();
+  const color = value >= 75 ? T.teal : value >= 50 ? T.amber : T.coral;
   return (
     <div>
       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:5 }}>
-        <span style={{ fontSize:10, color:C.textSec, fontFamily:"'DM Sans',sans-serif", fontWeight:500 }}>Sentiment</span>
+        <span style={{ fontSize:10, color:T.textSec, fontFamily:"'DM Sans',sans-serif", fontWeight:500 }}>Sentiment</span>
         <span style={{ fontSize:12, fontWeight:700, color, fontFamily:"'Sora',sans-serif" }}>{value}%</span>
       </div>
-      <div style={{ height:5, background:C.border, borderRadius:99, overflow:"hidden" }}>
+      <div style={{ height:5, background:T.border, borderRadius:99, overflow:"hidden" }}>
         <div style={{
           height:"100%", width:`${value}%`, background: `linear-gradient(90deg, ${color}, ${color}dd)`,
           borderRadius:99, transition:"width 0.8s cubic-bezier(0.4,0,0.2,1)"
@@ -115,13 +152,14 @@ function SentimentBar({ value }) {
 }
 
 function TrendBadge({ value }) {
+  const T = useThemeColors();
   const up = value >= 0;
   return (
     <div style={{
       display:"inline-flex", alignItems:"center", gap:3,
       padding:"3px 8px", borderRadius:99,
-      background: up ? C.greenDim : C.redDim,
-      color: up ? C.green : C.coral,
+      background: up ? T.greenDim : T.redDim,
+      color: up ? T.green : T.coral,
       fontSize:11, fontWeight:700, fontFamily:"'Sora',sans-serif"
     }}>
       <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
@@ -134,7 +172,8 @@ function TrendBadge({ value }) {
 }
 
 function StatusDot({ status }) {
-  const map = { healthy:C.green, watch:C.amber, critical:C.coral };
+  const T = useThemeColors();
+  const map = { healthy:T.green, watch:T.amber, critical:T.coral };
   return (
     <div style={{ display:"flex", alignItems:"center", gap:5 }}>
       <div style={{ width:7, height:7, borderRadius:"50%", background:map[status],
@@ -148,6 +187,7 @@ function StatusDot({ status }) {
 }
 
 function PlatformBadge({ platform }) {
+  const T = useThemeColors();
   const p = PLATFORMS[platform];
   return (
     <div style={{
@@ -162,16 +202,17 @@ function PlatformBadge({ platform }) {
 }
 
 function ProductCard({ p, idx }) {
+  const T = useThemeColors();
   const [hovered, setHovered] = useState(false);
-  const statusBorder = { healthy:"transparent", watch:`${C.amber}50`, critical:`${C.coral}60` };
+  const statusBorder = { healthy:"transparent", watch:`${T.amber}50`, critical:`${T.coral}60` };
   return (
     <div
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
-        background:C.bgCard,
-        border:`1px solid ${hovered ? C.borderDark : C.border}`,
-        borderTop:`3px solid ${statusBorder[p.status] !== "transparent" ? statusBorder[p.status] : hovered ? C.teal : C.border}`,
+        background:T.bgCard,
+        border:`1px solid ${hovered ? T.borderDark : T.border}`,
+        borderTop:`3px solid ${statusBorder[p.status] !== "transparent" ? statusBorder[p.status] : hovered ? T.teal : T.border}`,
         borderRadius:16, padding:"20px",
         cursor:"pointer",
         transform: hovered ? "translateY(-3px)" : "translateY(0)",
@@ -184,31 +225,31 @@ function ProductCard({ p, idx }) {
       {p.alerts > 0 && (
         <div style={{
           position:"absolute", top:14, right:14,
-          background:C.coral, color:"#fff",
+          background:T.coral, color:"#fff",
           width:20, height:20, borderRadius:"50%",
           fontSize:10, fontWeight:700, fontFamily:"'Sora',sans-serif",
           display:"flex", alignItems:"center", justifyContent:"center",
-          boxShadow:`0 0 0 3px ${C.coralDim}`
+          boxShadow:`0 0 0 3px ${T.coralDim}`
         }}>{p.alerts}</div>
       )}
 
       <div style={{ display:"flex", alignItems:"flex-start", gap:14, marginBottom:16 }}>
         <div style={{
           width:52, height:52, borderRadius:12, flexShrink:0,
-          background:`linear-gradient(135deg, ${C.bg}, ${C.border})`,
+          background:`linear-gradient(135deg, ${T.bg}, ${T.border})`,
           display:"flex", alignItems:"center", justifyContent:"center",
-          fontSize:24, border:`1px solid ${C.border}`
+          fontSize:24, border:`1px solid ${T.border}`
         }}>{p.img}</div>
         <div style={{ flex:1, minWidth:0 }}>
-          <div style={{ fontSize:13, fontWeight:600, color:C.textPri, lineHeight:1.35,
+          <div style={{ fontSize:13, fontWeight:600, color:T.textPri, lineHeight:1.35,
             fontFamily:"'Sora',sans-serif", marginBottom:5,
             overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
             {p.name}
           </div>
           <div style={{ display:"flex", alignItems:"center", gap:8, flexWrap:"wrap" }}>
-            <span style={{ fontSize:10, color:C.textMut, fontFamily:"'DM Sans',sans-serif" }}>{p.sku}</span>
-            <span style={{ fontSize:10, color:C.textMut }}>·</span>
-            <span style={{ fontSize:10, color:C.textSec, fontFamily:"'DM Sans',sans-serif", fontWeight:500 }}>{p.category}</span>
+            <span style={{ fontSize:10, color:T.textMut, fontFamily:"'DM Sans',sans-serif" }}>{p.sku}</span>
+            <span style={{ fontSize:10, color:T.textMut }}>·</span>
+            <span style={{ fontSize:10, color:T.textSec, fontFamily:"'DM Sans',sans-serif", fontWeight:500 }}>{p.category}</span>
           </div>
           <div style={{ marginTop:6 }}>
             <PlatformBadge platform={p.platform}/>
@@ -218,7 +259,7 @@ function ProductCard({ p, idx }) {
 
       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14 }}>
         <StarRating rating={p.rating}/>
-        <span style={{ fontSize:11, color:C.textMut, fontFamily:"'DM Sans',sans-serif" }}>
+        <span style={{ fontSize:11, color:T.textMut, fontFamily:"'DM Sans',sans-serif" }}>
           {p.reviews.toLocaleString()} reviews
         </span>
       </div>
@@ -229,14 +270,14 @@ function ProductCard({ p, idx }) {
 
       <div style={{
         padding:"10px 12px", borderRadius:10,
-        background:C.bg, marginBottom:14,
-        border:`1px solid ${C.border}`
+        background:T.bg, marginBottom:14,
+        border:`1px solid ${T.border}`
       }}>
-        <div style={{ fontSize:10, color:C.textMut, fontFamily:"'DM Sans',sans-serif",
+        <div style={{ fontSize:10, color:T.textMut, fontFamily:"'DM Sans',sans-serif",
           fontWeight:500, marginBottom:3, textTransform:"uppercase", letterSpacing:"0.05em" }}>
           Top insight
         </div>
-        <div style={{ fontSize:11, color:C.textSec, fontFamily:"'DM Sans',sans-serif",
+        <div style={{ fontSize:11, color:T.textSec, fontFamily:"'DM Sans',sans-serif",
           lineHeight:1.5, fontStyle:"italic" }}>
           "{p.topIssue}"
         </div>
@@ -251,10 +292,11 @@ function ProductCard({ p, idx }) {
 }
 
 function KpiCard({ label, value, sub, icon, color, trend }) {
+  const T = useThemeColors();
   return (
     <div style={{
-      background:C.bgCard, borderRadius:16, padding:"20px 22px",
-      border:`1px solid ${C.border}`, flex:1, minWidth:0,
+      background:T.bgCard, borderRadius:16, padding:"20px 22px",
+      border:`1px solid ${T.border}`, flex:1, minWidth:0,
       boxShadow:"0 2px 12px rgba(11,21,38,0.04)",
       position:"relative", overflow:"hidden"
     }}>
@@ -264,15 +306,15 @@ function KpiCard({ label, value, sub, icon, color, trend }) {
         background:`${color}12`
       }}/>
       <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", marginBottom:14 }}>
-        <div style={{ fontSize:12, fontWeight:500, color:C.textSec,
+        <div style={{ fontSize:12, fontWeight:500, color:T.textSec,
           fontFamily:"'DM Sans',sans-serif", letterSpacing:"0.02em" }}>{label}</div>
         <div style={{ width:36, height:36, borderRadius:10,
           background:`${color}15`, display:"flex", alignItems:"center", justifyContent:"center",
           color, fontSize:16 }}>{icon}</div>
       </div>
-      <div style={{ fontSize:28, fontWeight:700, color:C.textPri,
+      <div style={{ fontSize:28, fontWeight:700, color:T.textPri,
         fontFamily:"'Sora',sans-serif", marginBottom:4, letterSpacing:"-0.02em" }}>{value}</div>
-      <div style={{ fontSize:11, color:C.textMut, fontFamily:"'DM Sans',sans-serif" }}>{sub}</div>
+      <div style={{ fontSize:11, color:T.textMut, fontFamily:"'DM Sans',sans-serif" }}>{sub}</div>
       {trend !== undefined && (
         <div style={{ marginTop:10 }}>
           <TrendBadge value={trend}/>
@@ -290,19 +332,38 @@ export default function ReviewBridgeHome() {
   const [mounted, setMounted] = useState(false);
   const [dateRange, setDateRange] = useState("30d");
   const [liveAlerts, setLiveAlerts] = useState(ALERTS);
+  const [darkMode, setDarkMode] = useState(() => {
+    try { return localStorage.getItem("lumiq-dark-mode") === "true"; } catch { return false; }
+  });
   const searchRef = useRef(null);
+
+  const T = darkMode ? DARK : LIGHT;
+
+  const toggleDarkMode = () => {
+    setDarkMode(prev => {
+      const next = !prev;
+      try { localStorage.setItem("lumiq-dark-mode", String(next)); } catch {}
+      return next;
+    });
+  };
 
   const dismissAlert = (id) => setLiveAlerts(prev => prev.filter(a => a.id !== id));
 
   useEffect(() => {
-    const style = document.createElement("style");
+    const id = "lumiq-global-styles";
+    let style = document.getElementById(id);
+    if (!style) {
+      style = document.createElement("style");
+      style.id = id;
+      document.head.appendChild(style);
+    }
     style.textContent = FONTS + `
       * { box-sizing: border-box; margin: 0; padding: 0; }
-      body { font-family: 'DM Sans', sans-serif; background: ${C.bg}; }
+      body { font-family: 'DM Sans', sans-serif; background: ${T.bg}; transition: background 0.3s; }
       ::-webkit-scrollbar { width: 6px; }
       ::-webkit-scrollbar-track { background: transparent; }
-      ::-webkit-scrollbar-thumb { background: ${C.border}; border-radius: 99px; }
-      ::-webkit-scrollbar-thumb:hover { background: ${C.borderDark}; }
+      ::-webkit-scrollbar-thumb { background: ${T.border}; border-radius: 99px; }
+      ::-webkit-scrollbar-thumb:hover { background: ${T.borderDark}; }
       @keyframes fadeUp {
         from { opacity:0; transform:translateY(16px); }
         to   { opacity:1; transform:translateY(0); }
@@ -311,9 +372,8 @@ export default function ReviewBridgeHome() {
       @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
       .live-dot { animation: pulse 2s ease-in-out infinite; }
     `;
-    document.head.appendChild(style);
     setTimeout(() => setMounted(true), 50);
-  }, []);
+  }, [darkMode, T]);
 
   const tabs = [
     { key:"all",        label:"All Platforms", count:9 },
@@ -338,25 +398,26 @@ export default function ReviewBridgeHome() {
   const avgRating     = (PRODUCTS.reduce((s,p) => s + p.rating, 0) / PRODUCTS.length).toFixed(1);
 
   return (
-    <div style={{ display:"flex", height:"100vh", background:C.bg, fontFamily:"'DM Sans',sans-serif", overflow:"hidden" }}>
+    <ThemeContext.Provider value={{ dark: darkMode }}>
+    <div style={{ display:"flex", height:"100vh", background:T.bg, fontFamily:"'DM Sans',sans-serif", overflow:"hidden", transition:"background 0.3s" }}>
 
       {/* ── Sidebar ─────────────────────────────────────────────── */}
       <aside style={{
         width:230, flexShrink:0,
-        background:C.navy,
+        background:T.navy,
         display:"flex", flexDirection:"column",
         padding:"0",
         borderRight:"none",
         position:"relative", zIndex:10,
       }}>
         {/* Logo */}
-        <div style={{ padding:"24px 22px 20px", borderBottom:`1px solid ${C.navyLight}` }}>
+        <div style={{ padding:"24px 22px 20px", borderBottom:`1px solid ${T.navyLight}` }}>
           <div style={{ display:"flex", alignItems:"center", gap:10 }}>
             <div style={{
               width:36, height:36, borderRadius:10,
-              background:`linear-gradient(135deg, ${C.teal}, ${C.tealDim})`,
+              background:`linear-gradient(135deg, ${T.teal}, ${T.tealDim})`,
               display:"flex", alignItems:"center", justifyContent:"center",
-              boxShadow:`0 4px 14px ${C.tealGlow}`
+              boxShadow:`0 4px 14px ${T.tealGlow}`
             }}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
@@ -365,21 +426,21 @@ export default function ReviewBridgeHome() {
             <div>
               <div style={{ fontSize:15, fontWeight:700, color:"#fff",
                 fontFamily:"'Sora',sans-serif", letterSpacing:"-0.01em" }}>LumIQ</div>
-              <div style={{ fontSize:10, color:`${C.teal}bb`, fontFamily:"'DM Sans',sans-serif",
+              <div style={{ fontSize:10, color:`${T.teal}bb`, fontFamily:"'DM Sans',sans-serif",
                 fontWeight:500 }}>Review Intelligence</div>
             </div>
           </div>
         </div>
 
         {/* Brand chip */}
-        <div style={{ padding:"14px 22px", borderBottom:`1px solid ${C.navyLight}` }}>
+        <div style={{ padding:"14px 22px", borderBottom:`1px solid ${T.navyLight}` }}>
           <div style={{ fontSize:10, color:"#ffffff50", fontWeight:500,
             textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:8,
             fontFamily:"'DM Sans',sans-serif" }}>Active Brand</div>
           <div style={{
             display:"flex", alignItems:"center", gap:10,
             padding:"10px 12px", borderRadius:10,
-            background:C.navyLight, border:`1px solid ${C.navyMid}`
+            background:T.navyLight, border:`1px solid ${T.navyMid}`
           }}>
             <div style={{ width:28, height:28, borderRadius:8,
               background:`linear-gradient(135deg, #6366f1, #8b5cf6)`,
@@ -404,11 +465,11 @@ export default function ReviewBridgeHome() {
               <button key={item} onClick={() => setActiveNav(item)} style={{
                 display:"flex", alignItems:"center", gap:11,
                 padding:"10px 12px", borderRadius:10, border:"none", cursor:"pointer",
-                background: isActive ? C.tealGlow : "transparent",
-                color: isActive ? C.teal : "#ffffff70",
+                background: isActive ? T.tealGlow : "transparent",
+                color: isActive ? T.teal : "#ffffff70",
                 transition:"all 0.18s",
                 width:"100%", textAlign:"left",
-                borderLeft: isActive ? `2px solid ${C.teal}` : "2px solid transparent",
+                borderLeft: isActive ? `2px solid ${T.teal}` : "2px solid transparent",
               }}
               onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = "#ffffff08"; }}
               onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = "transparent"; }}>
@@ -417,7 +478,7 @@ export default function ReviewBridgeHome() {
                   fontFamily:"'DM Sans',sans-serif", letterSpacing:"0.01em" }}>{item}</span>
                 {item === "Overview" && (
                   <div style={{ marginLeft:"auto", width:6, height:6, borderRadius:"50%",
-                    background:C.teal }} className="live-dot"/>
+                    background:T.teal }} className="live-dot"/>
                 )}
               </button>
             );
@@ -428,27 +489,27 @@ export default function ReviewBridgeHome() {
             fontFamily:"'DM Sans',sans-serif" }}>Alerts</div>
           <div style={{
             padding:"12px", borderRadius:10,
-            background:`${C.coral}18`, border:`1px solid ${C.coral}30`
+            background:`${T.coral}18`, border:`1px solid ${T.coral}30`
           }}>
             <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:8 }}>
-              <span style={{ fontSize:12, fontWeight:600, color:C.coral,
+              <span style={{ fontSize:12, fontWeight:600, color:T.coral,
                 fontFamily:"'Sora',sans-serif" }}>Active Issues</span>
-              <div style={{ background:C.coral, color:"#fff", borderRadius:99,
+              <div style={{ background:T.coral, color:"#fff", borderRadius:99,
                 fontSize:10, fontWeight:700, padding:"1px 7px",
                 fontFamily:"'Sora',sans-serif" }}>{criticalCount + watchCount}</div>
             </div>
             <div style={{ display:"flex", gap:10 }}>
               <div style={{ textAlign:"center" }}>
-                <div style={{ fontSize:18, fontWeight:700, color:C.coral,
+                <div style={{ fontSize:18, fontWeight:700, color:T.coral,
                   fontFamily:"'Sora',sans-serif" }}>{criticalCount}</div>
-                <div style={{ fontSize:9, color:`${C.coral}90`,
+                <div style={{ fontSize:9, color:`${T.coral}90`,
                   fontFamily:"'DM Sans',sans-serif" }}>Critical</div>
               </div>
-              <div style={{ width:1, background:`${C.coral}30` }}/>
+              <div style={{ width:1, background:`${T.coral}30` }}/>
               <div style={{ textAlign:"center" }}>
-                <div style={{ fontSize:18, fontWeight:700, color:C.amber,
+                <div style={{ fontSize:18, fontWeight:700, color:T.amber,
                   fontFamily:"'Sora',sans-serif" }}>{watchCount}</div>
-                <div style={{ fontSize:9, color:`${C.amber}90`,
+                <div style={{ fontSize:9, color:`${T.amber}90`,
                   fontFamily:"'DM Sans',sans-serif" }}>Watch</div>
               </div>
             </div>
@@ -457,15 +518,15 @@ export default function ReviewBridgeHome() {
 
         {/* Profile */}
         <div style={{
-          padding:"16px 22px", borderTop:`1px solid ${C.navyLight}`,
+          padding:"16px 22px", borderTop:`1px solid ${T.navyLight}`,
           display:"flex", alignItems:"center", gap:12
         }}>
           <div style={{
             width:38, height:38, borderRadius:10, flexShrink:0,
-            background:`linear-gradient(135deg, ${C.teal}, #0099CC)`,
+            background:`linear-gradient(135deg, ${T.teal}, #0099CC)`,
             display:"flex", alignItems:"center", justifyContent:"center",
             fontSize:15, fontWeight:700, color:"#fff", fontFamily:"'Sora',sans-serif",
-            border:`2px solid ${C.tealGlow}`
+            border:`2px solid ${T.tealGlow}`
           }}>H</div>
           <div style={{ flex:1, minWidth:0 }}>
             <div style={{ fontSize:13, fontWeight:600, color:"#fff",
@@ -487,16 +548,16 @@ export default function ReviewBridgeHome() {
 
         {/* Top Header */}
         <header style={{
-          background:C.bgCard, borderBottom:`1px solid ${C.border}`,
+          background:T.bgCard, borderBottom:`1px solid ${T.border}`,
           padding:"12px 28px", minHeight:82,
           display:"flex", alignItems:"center", gap:20, flexShrink:0,
           boxShadow:"0 1px 12px rgba(11,21,38,0.04)"
         }}>
           <div style={{ flex:1 }}>
-            <div style={{ fontSize:13, fontWeight:500, color:C.textSec, fontFamily:"'DM Sans',sans-serif", marginBottom:4 }}>
+            <div style={{ fontSize:13, fontWeight:500, color:T.textSec, fontFamily:"'DM Sans',sans-serif", marginBottom:4 }}>
               Welcome Harsh 👋
             </div>
-            <div style={{ fontSize:19, fontWeight:700, color:C.textPri,
+            <div style={{ fontSize:19, fontWeight:700, color:T.textPri,
               fontFamily:"'Sora',sans-serif", letterSpacing:"-0.01em" }}>
               Product Intelligence Overview
             </div>
@@ -505,16 +566,16 @@ export default function ReviewBridgeHome() {
           {/* Date Range Picker */}
           <div style={{
             display:"flex", gap:3,
-            background:C.bg, padding:4, borderRadius:10,
-            border:`1px solid ${C.border}`
+            background:T.bg, padding:4, borderRadius:10,
+            border:`1px solid ${T.border}`
           }}>
             {[{key:"7d",label:"7D"},{key:"30d",label:"30D"},{key:"90d",label:"90D"},{key:"1y",label:"1Y"}].map(r => {
               const active = dateRange === r.key;
               return (
                 <button key={r.key} onClick={() => setDateRange(r.key)} style={{
                   padding:"6px 12px", borderRadius:7, border:"none", cursor:"pointer",
-                  background: active ? C.navy : "transparent",
-                  color: active ? "#fff" : C.textSec,
+                  background: active ? T.navy : "transparent",
+                  color: active ? "#fff" : T.textSec,
                   fontSize:11, fontWeight: active ? 700 : 500,
                   fontFamily:"'Sora',sans-serif",
                   transition:"all 0.18s",
@@ -524,7 +585,7 @@ export default function ReviewBridgeHome() {
             })}
             <button style={{
               padding:"6px 10px", borderRadius:7, border:"none", cursor:"pointer",
-              background:"transparent", color:C.textSec,
+              background:"transparent", color:T.textSec,
               fontSize:11, fontWeight:500, fontFamily:"'DM Sans',sans-serif",
               display:"flex", alignItems:"center", gap:5, transition:"all 0.18s"
             }}>
@@ -539,7 +600,7 @@ export default function ReviewBridgeHome() {
           <div style={{ position:"relative", width:340 }}>
             <div style={{
               position:"absolute", left:14, top:"50%", transform:"translateY(-50%)",
-              color: searchFocused ? C.teal : C.textMut, transition:"color 0.2s"
+              color: searchFocused ? T.teal : T.textMut, transition:"color 0.2s"
             }}>
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
@@ -554,19 +615,19 @@ export default function ReviewBridgeHome() {
               placeholder="Search products, SKUs, categories…"
               style={{
                 width:"100%", height:40, paddingLeft:40, paddingRight:16,
-                border:`1.5px solid ${searchFocused ? C.teal : C.border}`,
+                border:`1.5px solid ${searchFocused ? T.teal : T.border}`,
                 borderRadius:10, outline:"none",
                 fontSize:13, fontFamily:"'DM Sans',sans-serif",
-                color:C.textPri, background:searchFocused ? "#fff" : C.bg,
+                color:T.textPri, background:searchFocused ? "#fff" : T.bg,
                 transition:"all 0.2s",
-                boxShadow: searchFocused ? `0 0 0 3px ${C.tealGlow}` : "none"
+                boxShadow: searchFocused ? `0 0 0 3px ${T.tealGlow}` : "none"
               }}
             />
             {search && (
               <button onClick={() => setSearch("")} style={{
                 position:"absolute", right:12, top:"50%", transform:"translateY(-50%)",
                 background:"none", border:"none", cursor:"pointer",
-                color:C.textMut, padding:2
+                color:T.textMut, padding:2
               }}>
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
                   <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
@@ -579,19 +640,19 @@ export default function ReviewBridgeHome() {
           <div style={{
             display:"flex", alignItems:"center", gap:7,
             padding:"6px 14px", borderRadius:99,
-            background:C.greenDim, border:`1px solid ${C.green}30`
+            background:T.greenDim, border:`1px solid ${T.green}30`
           }}>
-            <div className="live-dot" style={{ width:7, height:7, borderRadius:"50%", background:C.green }}/>
-            <span style={{ fontSize:11, fontWeight:600, color:C.green,
+            <div className="live-dot" style={{ width:7, height:7, borderRadius:"50%", background:T.green }}/>
+            <span style={{ fontSize:11, fontWeight:600, color:T.green,
               fontFamily:"'DM Sans',sans-serif" }}>Live</span>
           </div>
 
           {/* Notif */}
           <div style={{ position:"relative" }}>
             <button style={{
-              width:40, height:40, borderRadius:10, border:`1px solid ${C.border}`,
-              background:C.bg, cursor:"pointer", display:"flex",
-              alignItems:"center", justifyContent:"center", color:C.textSec
+              width:40, height:40, borderRadius:10, border:`1px solid ${T.border}`,
+              background:T.bg, cursor:"pointer", display:"flex",
+              alignItems:"center", justifyContent:"center", color:T.textSec
             }}>
               <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
@@ -600,37 +661,221 @@ export default function ReviewBridgeHome() {
             <div style={{
               position:"absolute", top:8, right:8,
               width:8, height:8, borderRadius:"50%",
-              background:C.coral, border:"2px solid #fff"
+              background:T.coral, border:"2px solid #fff"
             }}/>
           </div>
 
           {/* Avatar */}
           <div style={{
             width:40, height:40, borderRadius:10,
-            background:`linear-gradient(135deg, ${C.teal}, #0099CC)`,
+            background:`linear-gradient(135deg, ${T.teal}, #0099CC)`,
             display:"flex", alignItems:"center", justifyContent:"center",
             fontSize:15, fontWeight:700, color:"#fff", fontFamily:"'Sora',sans-serif",
-            cursor:"pointer", border:`2px solid ${C.tealGlow}`
+            cursor:"pointer", border:`2px solid ${T.tealGlow}`
           }}>H</div>
         </header>
 
         {/* Content */}
-        <div style={{ flex:1, overflowY:"auto", padding:"24px 28px" }}>
+        <div style={{ flex:1, overflowY:"auto", padding: activeNav === "Competitors" ? "0" : "24px 28px" }}>
+
+        {activeNav === "Settings" ? (
+          /* ── Settings Panel ───────────────────────────────────── */
+          <div style={{ maxWidth:680, margin:"0 auto" }}>
+            <div style={{ marginBottom:28 }}>
+              <div style={{ fontSize:22, fontWeight:700, color:T.textPri,
+                fontFamily:"'Sora',sans-serif", letterSpacing:"-0.01em", marginBottom:6 }}>Settings</div>
+              <div style={{ fontSize:13, color:T.textSec, fontFamily:"'DM Sans',sans-serif" }}>
+                Manage your preferences and account settings
+              </div>
+            </div>
+
+            {/* Appearance Card */}
+            <div style={{
+              background:T.bgCard, borderRadius:16, border:`1px solid ${T.border}`,
+              overflow:"hidden", boxShadow:"0 2px 12px rgba(11,21,38,0.04)", marginBottom:16
+            }}>
+              <div style={{
+                padding:"18px 22px", borderBottom:`1px solid ${T.border}`,
+                display:"flex", alignItems:"center", gap:10
+              }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={T.textPri} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+                </svg>
+                <span style={{ fontSize:14, fontWeight:600, color:T.textPri,
+                  fontFamily:"'Sora',sans-serif" }}>Appearance</span>
+              </div>
+              <div style={{ padding:"20px 22px" }}>
+                {/* Dark Mode Toggle */}
+                <div style={{
+                  display:"flex", alignItems:"center", justifyContent:"space-between",
+                  padding:"16px 18px", borderRadius:12,
+                  background:T.bg, border:`1px solid ${T.border}`,
+                  transition:"all 0.2s"
+                }}>
+                  <div style={{ display:"flex", alignItems:"center", gap:14 }}>
+                    <div style={{
+                      width:42, height:42, borderRadius:12,
+                      background: darkMode
+                        ? "linear-gradient(135deg, #1a1a3e, #2d2b55)"
+                        : "linear-gradient(135deg, #FFF4E0, #FFE4B5)",
+                      display:"flex", alignItems:"center", justifyContent:"center",
+                      fontSize:20, border:`1px solid ${T.border}`,
+                      transition:"all 0.3s"
+                    }}>
+                      {darkMode ? "🌙" : "☀️"}
+                    </div>
+                    <div>
+                      <div style={{ fontSize:14, fontWeight:600, color:T.textPri,
+                        fontFamily:"'Sora',sans-serif", marginBottom:3 }}>
+                        Dark Mode
+                      </div>
+                      <div style={{ fontSize:12, color:T.textSec, fontFamily:"'DM Sans',sans-serif" }}>
+                        {darkMode ? "Dark theme is active" : "Switch to dark theme for reduced eye strain"}
+                      </div>
+                    </div>
+                  </div>
+                  {/* Toggle Switch */}
+                  <button
+                    id="dark-mode-toggle"
+                    onClick={toggleDarkMode}
+                    style={{
+                      width:52, height:28, borderRadius:99, border:"none", cursor:"pointer",
+                      background: darkMode
+                        ? `linear-gradient(135deg, ${T.teal}, ${T.tealDim})`
+                        : T.border,
+                      position:"relative",
+                      transition:"background 0.3s cubic-bezier(0.4,0,0.2,1)",
+                      boxShadow: darkMode ? `0 0 12px ${T.tealGlow}` : "inset 0 1px 3px rgba(0,0,0,0.1)",
+                      flexShrink:0
+                    }}
+                  >
+                    <div style={{
+                      width:22, height:22, borderRadius:"50%",
+                      background:"#fff",
+                      position:"absolute", top:3,
+                      left: darkMode ? 27 : 3,
+                      transition:"left 0.3s cubic-bezier(0.4,0,0.2,1)",
+                      boxShadow:"0 2px 6px rgba(0,0,0,0.2)"
+                    }}/>
+                  </button>
+                </div>
+
+                {/* Theme Preview */}
+                <div style={{
+                  marginTop:16, padding:"14px 18px", borderRadius:12,
+                  background:`${T.teal}10`, border:`1px solid ${T.teal}25`,
+                  display:"flex", alignItems:"center", gap:10
+                }}>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={T.teal} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>
+                  </svg>
+                  <span style={{ fontSize:12, color:T.teal, fontFamily:"'DM Sans',sans-serif", fontWeight:500 }}>
+                    Your theme preference is saved automatically and will persist across sessions.
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Account Card (placeholder) */}
+            <div style={{
+              background:T.bgCard, borderRadius:16, border:`1px solid ${T.border}`,
+              overflow:"hidden", boxShadow:"0 2px 12px rgba(11,21,38,0.04)", marginBottom:16
+            }}>
+              <div style={{
+                padding:"18px 22px", borderBottom:`1px solid ${T.border}`,
+                display:"flex", alignItems:"center", gap:10
+              }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={T.textPri} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+                </svg>
+                <span style={{ fontSize:14, fontWeight:600, color:T.textPri,
+                  fontFamily:"'Sora',sans-serif" }}>Account</span>
+              </div>
+              <div style={{ padding:"20px 22px", display:"flex", flexDirection:"column", gap:16 }}>
+                {[
+                  { label:"Name", value:"Harsh Sharma" },
+                  { label:"Email", value:"harsh@novabrand.co" },
+                  { label:"Role", value:"Brand Analyst" },
+                  { label:"Plan", value:"Enterprise" },
+                ].map(item => (
+                  <div key={item.label} style={{
+                    display:"flex", justifyContent:"space-between", alignItems:"center",
+                    padding:"12px 16px", borderRadius:10,
+                    background:T.bg, border:`1px solid ${T.border}`
+                  }}>
+                    <span style={{ fontSize:12, color:T.textSec, fontFamily:"'DM Sans',sans-serif", fontWeight:500 }}>{item.label}</span>
+                    <span style={{ fontSize:13, color:T.textPri, fontFamily:"'Sora',sans-serif", fontWeight:600 }}>{item.value}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Notifications Card */}
+            <div style={{
+              background:T.bgCard, borderRadius:16, border:`1px solid ${T.border}`,
+              overflow:"hidden", boxShadow:"0 2px 12px rgba(11,21,38,0.04)"
+            }}>
+              <div style={{
+                padding:"18px 22px", borderBottom:`1px solid ${T.border}`,
+                display:"flex", alignItems:"center", gap:10
+              }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={T.textPri} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                </svg>
+                <span style={{ fontSize:14, fontWeight:600, color:T.textPri,
+                  fontFamily:"'Sora',sans-serif" }}>Notifications</span>
+              </div>
+              <div style={{ padding:"20px 22px", display:"flex", flexDirection:"column", gap:12 }}>
+                {[
+                  { label:"Email alerts for critical issues", enabled:true },
+                  { label:"Weekly sentiment digest", enabled:true },
+                  { label:"New review notifications", enabled:false },
+                ].map((item, i) => (
+                  <div key={i} style={{
+                    display:"flex", justifyContent:"space-between", alignItems:"center",
+                    padding:"12px 16px", borderRadius:10,
+                    background:T.bg, border:`1px solid ${T.border}`
+                  }}>
+                    <span style={{ fontSize:12, color:T.textPri, fontFamily:"'DM Sans',sans-serif", fontWeight:500 }}>{item.label}</span>
+                    <div style={{
+                      width:40, height:22, borderRadius:99,
+                      background: item.enabled ? T.teal : T.border,
+                      position:"relative", cursor:"pointer",
+                      transition:"background 0.2s"
+                    }}>
+                      <div style={{
+                        width:16, height:16, borderRadius:"50%", background:"#fff",
+                        position:"absolute", top:3,
+                        left: item.enabled ? 21 : 3,
+                        transition:"left 0.2s",
+                        boxShadow:"0 1px 3px rgba(0,0,0,0.15)"
+                      }}/>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        ) : activeNav === "Competitors" ? (
+          <CompetitorPage />
+        ) : (
+          <>
+
 
           {/* KPI strip */}
           <div style={{ display:"flex", gap:16, marginBottom:24 }}>
             <KpiCard label="Total Products" value="9" sub="Across 5 platforms" icon={
               <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
-            } color={C.violet} trend={+12.5}/>
+            } color={T.violet} trend={+12.5}/>
             <KpiCard label="Avg Sentiment" value={`${avgSentiment}%`} sub="Across all reviews" icon={
               <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
-            } color={C.teal} trend={+3.8}/>
+            } color={T.teal} trend={+3.8}/>
             <KpiCard label="Avg Rating" value={avgRating} sub="Weighted average" icon={
               <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-            } color={C.amber} trend={-0.3}/>
+            } color={T.amber} trend={-0.3}/>
             <KpiCard label="Alerts" value={String(ALERTS.length)} sub={`${criticalCount} critical · ${watchCount} watch`} icon={
               <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-            } color={C.coral}/>
+            } color={T.coral}/>
           </div>
 
           <div style={{ display:"flex", gap:20 }}>
@@ -642,8 +887,8 @@ export default function ReviewBridgeHome() {
               <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:16 }}>
                 <div style={{
                   display:"flex", gap:4,
-                  background:C.bgCard, padding:5, borderRadius:12,
-                  border:`1px solid ${C.border}`,
+                  background:T.bgCard, padding:5, borderRadius:12,
+                  border:`1px solid ${T.border}`,
                   boxShadow:"0 1px 6px rgba(11,21,38,0.04)"
                 }}>
                   {tabs.map(tab => {
@@ -651,8 +896,8 @@ export default function ReviewBridgeHome() {
                     return (
                       <button key={tab.key} onClick={() => setActiveTab(tab.key)} style={{
                         padding:"7px 14px", borderRadius:8, border:"none", cursor:"pointer",
-                        background: active ? C.navy : "transparent",
-                        color: active ? "#fff" : C.textSec,
+                        background: active ? T.navy : "transparent",
+                        color: active ? "#fff" : T.textSec,
                         fontSize:12, fontWeight: active ? 600 : 400,
                         fontFamily:"'DM Sans',sans-serif",
                         transition:"all 0.18s",
@@ -661,8 +906,8 @@ export default function ReviewBridgeHome() {
                         {tab.label}
                         <span style={{
                           padding:"1px 6px", borderRadius:99,
-                          background: active ? "rgba(255,255,255,0.15)" : C.bg,
-                          color: active ? "rgba(255,255,255,0.85)" : C.textMut,
+                          background: active ? "rgba(255,255,255,0.15)" : T.bg,
+                          color: active ? "rgba(255,255,255,0.85)" : T.textMut,
                           fontSize:10, fontWeight:600, fontFamily:"'Sora',sans-serif"
                         }}>{tab.count}</span>
                       </button>
@@ -671,13 +916,13 @@ export default function ReviewBridgeHome() {
                 </div>
 
                 <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-                  <span style={{ fontSize:12, color:C.textMut, fontFamily:"'DM Sans',sans-serif" }}>
+                  <span style={{ fontSize:12, color:T.textMut, fontFamily:"'DM Sans',sans-serif" }}>
                     {filtered.length} product{filtered.length !== 1 ? "s" : ""}
                   </span>
                   <button style={{
                     padding:"7px 14px", borderRadius:8,
-                    border:`1px solid ${C.border}`, background:C.bgCard,
-                    fontSize:12, color:C.textSec, cursor:"pointer",
+                    border:`1px solid ${T.border}`, background:T.bgCard,
+                    fontSize:12, color:T.textSec, cursor:"pointer",
                     fontFamily:"'DM Sans',sans-serif",
                     display:"flex", alignItems:"center", gap:6
                   }}>
@@ -689,8 +934,8 @@ export default function ReviewBridgeHome() {
                   </button>
                   <button style={{
                     padding:"7px 14px", borderRadius:8,
-                    border:`1px solid ${C.border}`, background:C.bgCard,
-                    fontSize:12, color:C.textSec, cursor:"pointer",
+                    border:`1px solid ${T.border}`, background:T.bgCard,
+                    fontSize:12, color:T.textSec, cursor:"pointer",
                     fontFamily:"'DM Sans',sans-serif",
                     display:"flex", alignItems:"center", gap:6
                   }}>
@@ -719,12 +964,12 @@ export default function ReviewBridgeHome() {
               ) : (
                 <div style={{
                   textAlign:"center", padding:"60px 20px",
-                  background:C.bgCard, borderRadius:16, border:`1px solid ${C.border}`
+                  background:T.bgCard, borderRadius:16, border:`1px solid ${T.border}`
                 }}>
                   <div style={{ fontSize:36, marginBottom:12 }}>🔍</div>
-                  <div style={{ fontSize:15, fontWeight:600, color:C.textPri,
+                  <div style={{ fontSize:15, fontWeight:600, color:T.textPri,
                     fontFamily:"'Sora',sans-serif", marginBottom:6 }}>No products found</div>
-                  <div style={{ fontSize:13, color:C.textMut, fontFamily:"'DM Sans',sans-serif" }}>
+                  <div style={{ fontSize:13, color:T.textMut, fontFamily:"'DM Sans',sans-serif" }}>
                     Try adjusting your search or filter
                   </div>
                 </div>
@@ -736,22 +981,22 @@ export default function ReviewBridgeHome() {
 
               {/* Alerts */}
               <div style={{
-                background:C.bgCard, borderRadius:16, border:`1px solid ${C.border}`,
+                background:T.bgCard, borderRadius:16, border:`1px solid ${T.border}`,
                 overflow:"hidden", marginBottom:16,
                 boxShadow:"0 2px 12px rgba(11,21,38,0.04)"
               }}>
                 <div style={{
-                  padding:"16px 18px", borderBottom:`1px solid ${C.border}`,
+                  padding:"16px 18px", borderBottom:`1px solid ${T.border}`,
                   display:"flex", alignItems:"center", justifyContent:"space-between"
                 }}>
                   <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-                    <div style={{ width:8, height:8, borderRadius:"50%", background:C.coral }} className="live-dot"/>
-                    <span style={{ fontSize:13, fontWeight:600, color:C.textPri,
+                    <div style={{ width:8, height:8, borderRadius:"50%", background:T.coral }} className="live-dot"/>
+                    <span style={{ fontSize:13, fontWeight:600, color:T.textPri,
                       fontFamily:"'Sora',sans-serif" }}>Live Alerts</span>
                   </div>
                   <span style={{
-                    fontSize:10, fontWeight:700, color:C.coral,
-                    background:C.coralDim, padding:"2px 8px", borderRadius:99,
+                    fontSize:10, fontWeight:700, color:T.coral,
+                    background:T.coralDim, padding:"2px 8px", borderRadius:99,
                     fontFamily:"'Sora',sans-serif"
                   }}>{liveAlerts.length} new</span>
                 </div>
@@ -759,46 +1004,46 @@ export default function ReviewBridgeHome() {
                   {liveAlerts.length === 0 ? (
                     <div style={{ padding:"24px 18px", textAlign:"center" }}>
                       <div style={{ fontSize:20, marginBottom:6 }}>✅</div>
-                      <div style={{ fontSize:12, color:C.textMut, fontFamily:"'DM Sans',sans-serif" }}>All clear — no active alerts</div>
+                      <div style={{ fontSize:12, color:T.textMut, fontFamily:"'DM Sans',sans-serif" }}>All clear — no active alerts</div>
                     </div>
                   ) : liveAlerts.map((a, i) => {
-                    const ic = { critical:C.coral, warning:C.amber, info:C.teal }[a.type];
+                    const ic = { critical:T.coral, warning:T.amber, info:T.teal }[a.type];
                     return (
                       <div key={a.id} style={{
                         padding:"13px 18px",
-                        borderBottom: i < liveAlerts.length-1 ? `1px solid ${C.border}` : "none",
+                        borderBottom: i < liveAlerts.length-1 ? `1px solid ${T.border}` : "none",
                         cursor:"pointer",
                         transition:"background 0.15s",
                         position:"relative"
                       }}
-                      onMouseEnter={e => { e.currentTarget.style.background = C.bg; e.currentTarget.querySelector('.dismiss-btn').style.opacity = '1'; }}
+                      onMouseEnter={e => { e.currentTarget.style.background = T.bg; e.currentTarget.querySelector('.dismiss-btn').style.opacity = '1'; }}
                       onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.querySelector('.dismiss-btn').style.opacity = '0'; }}>
                         <div style={{ display:"flex", gap:10 }}>
                           <div style={{ width:7, height:7, borderRadius:"50%", background:ic,
                             marginTop:5, flexShrink:0 }}/>
                           <div style={{ flex:1, minWidth:0 }}>
-                            <div style={{ fontSize:11, fontWeight:600, color:C.textPri,
+                            <div style={{ fontSize:11, fontWeight:600, color:T.textPri,
                               fontFamily:"'Sora',sans-serif", marginBottom:3,
                               overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
                               {a.product}
                             </div>
-                            <div style={{ fontSize:11, color:C.textSec,
+                            <div style={{ fontSize:11, color:T.textSec,
                               fontFamily:"'DM Sans',sans-serif", lineHeight:1.4, marginBottom:4 }}>
                               {a.msg}
                             </div>
-                            <div style={{ fontSize:10, color:C.textMut,
+                            <div style={{ fontSize:10, color:T.textMut,
                               fontFamily:"'DM Sans',sans-serif" }}>{a.time}</div>
                           </div>
                           <button className="dismiss-btn" onClick={(e) => { e.stopPropagation(); dismissAlert(a.id); }} style={{
                             position:"absolute", top:10, right:12,
                             width:22, height:22, borderRadius:6,
-                            border:`1px solid ${C.border}`, background:C.bgCard,
+                            border:`1px solid ${T.border}`, background:T.bgCard,
                             cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center",
-                            color:C.textMut, opacity:0, transition:"opacity 0.15s, background 0.15s",
+                            color:T.textMut, opacity:0, transition:"opacity 0.15s, background 0.15s",
                             fontSize:12, fontWeight:600, lineHeight:1, padding:0
                           }}
-                          onMouseEnter={e => e.currentTarget.style.background = C.coralDim}
-                          onMouseLeave={e => e.currentTarget.style.background = C.bgCard}>
+                          onMouseEnter={e => e.currentTarget.style.background = T.coralDim}
+                          onMouseLeave={e => e.currentTarget.style.background = T.bgCard}>
                             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round">
                               <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
                             </svg>
@@ -812,11 +1057,11 @@ export default function ReviewBridgeHome() {
 
               {/* Platform Sentiment */}
               <div style={{
-                background:C.bgCard, borderRadius:16, border:`1px solid ${C.border}`,
+                background:T.bgCard, borderRadius:16, border:`1px solid ${T.border}`,
                 overflow:"hidden", boxShadow:"0 2px 12px rgba(11,21,38,0.04)"
               }}>
-                <div style={{ padding:"16px 18px", borderBottom:`1px solid ${C.border}` }}>
-                  <span style={{ fontSize:13, fontWeight:600, color:C.textPri,
+                <div style={{ padding:"16px 18px", borderBottom:`1px solid ${T.border}` }}>
+                  <span style={{ fontSize:13, fontWeight:600, color:T.textPri,
                     fontFamily:"'Sora',sans-serif" }}>Sentiment by Platform</span>
                 </div>
                 <div style={{ padding:"16px 18px", display:"flex", flexDirection:"column", gap:14 }}>
@@ -824,20 +1069,20 @@ export default function ReviewBridgeHome() {
                     const platProducts = PRODUCTS.filter(pr => pr.platform === key);
                     if (platProducts.length === 0) return null;
                     const avgSent = Math.round(platProducts.reduce((s, pr) => s + pr.sentiment, 0) / platProducts.length);
-                    const sentColor = avgSent >= 75 ? C.teal : avgSent >= 50 ? C.amber : C.coral;
+                    const sentColor = avgSent >= 75 ? T.teal : avgSent >= 50 ? T.amber : T.coral;
                     return (
                       <div key={key}>
                         <div style={{ display:"flex", justifyContent:"space-between",
                           alignItems:"center", marginBottom:6 }}>
                           <div style={{ display:"flex", alignItems:"center", gap:7 }}>
                             <div style={{ width:8, height:8, borderRadius:"50%", background:p.color }}/>
-                            <span style={{ fontSize:12, fontWeight:500, color:C.textPri,
+                            <span style={{ fontSize:12, fontWeight:500, color:T.textPri,
                               fontFamily:"'DM Sans',sans-serif" }}>{p.label}</span>
                           </div>
                           <span style={{ fontSize:12, fontWeight:700, color:sentColor,
                             fontFamily:"'Sora',sans-serif" }}>{avgSent}%</span>
                         </div>
-                        <div style={{ height:5, background:C.border, borderRadius:99, overflow:"hidden" }}>
+                        <div style={{ height:5, background:T.border, borderRadius:99, overflow:"hidden" }}>
                           <div style={{ height:"100%", width:`${avgSent}%`, borderRadius:99,
                             background:`linear-gradient(90deg, ${sentColor}, ${sentColor}bb)`,
                             transition:"width 1s cubic-bezier(0.4,0,0.2,1)" }}/>
@@ -852,16 +1097,17 @@ export default function ReviewBridgeHome() {
           </div>
 
           {/* Footer */}
-          <div style={{ marginTop:28, paddingTop:18, borderTop:`1px solid ${C.border}`,
+          <div style={{ marginTop:28, paddingTop:18, borderTop:`1px solid ${T.border}`,
             display:"flex", justifyContent:"space-between", alignItems:"center" }}>
-            <span style={{ fontSize:11, color:C.textMut, fontFamily:"'DM Sans',sans-serif" }}>
+            <span style={{ fontSize:11, color:T.textMut, fontFamily:"'DM Sans',sans-serif" }}>
               Last synced · 2 minutes ago
             </span>
-            <span style={{ fontSize:11, color:C.textMut, fontFamily:"'DM Sans',sans-serif" }}>
+            <span style={{ fontSize:11, color:T.textMut, fontFamily:"'DM Sans',sans-serif" }}>
               LumIQ v1.0
             </span>
           </div>
-
+          </>
+        )}
         </div>
       </main>
 
@@ -869,7 +1115,7 @@ export default function ReviewBridgeHome() {
       <button style={{
         position:"fixed", bottom:28, right:32, zIndex:100,
         padding:"13px 26px", borderRadius:14,
-        background:`linear-gradient(135deg, ${C.teal}, ${C.tealDim})`,
+        background:`linear-gradient(135deg, ${T.teal}, ${T.tealDim})`,
         border:"none", cursor:"pointer",
         color:"#fff", fontSize:14, fontWeight:700,
         fontFamily:"'Sora',sans-serif",
@@ -887,5 +1133,6 @@ export default function ReviewBridgeHome() {
         Generate Report
       </button>
     </div>
+    </ThemeContext.Provider>
   );
 }
