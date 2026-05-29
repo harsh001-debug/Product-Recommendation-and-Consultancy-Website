@@ -17,9 +17,7 @@ const T = {
 };
 
 // ── Gemini API config ───────────────────────────────────────
-const GEMINI_URL =
-  import.meta.env.VITE_GEMINI_URL ||
-  "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent";
+const GEMINI_URL = import.meta.env.VITE_GEMINI_URL || "";
 
 const PLATFORMS = [
   { id:"amazon",     label:"Amazon India",  url:"amazon.in",     color:"#FF9900", hint:"e.g. boAt Airdopes 141" },
