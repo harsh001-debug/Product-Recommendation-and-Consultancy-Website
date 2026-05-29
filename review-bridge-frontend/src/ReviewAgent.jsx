@@ -17,8 +17,9 @@ const T = {
 };
 
 // ── Gemini API config ───────────────────────────────────────
-const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || "";
-const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${GEMINI_API_KEY}`;
+const GEMINI_URL =
+  import.meta.env.VITE_GEMINI_URL ||
+  "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent";
 
 const PLATFORMS = [
   { id:"amazon",     label:"Amazon India",  url:"amazon.in",     color:"#FF9900", hint:"e.g. boAt Airdopes 141" },
@@ -118,10 +119,9 @@ export default function ReviewAgent() {
 
     setPhase("running"); setStepIdx(0); setLogs([]); setResult(null); setRawText("");
 
-    if (!GEMINI_API_KEY) {
-      addLog(`Error: Gemini API Key not found.`, "error");
-      addLog(`Please create a '.env' file in the project root and add:`, "error");
-      addLog(`VITE_GEMINI_API_KEY=your_actual_key_here`, "error");
+    if (!GEMINI_URL) {
+      addLog(`Error: Gemini API URL not configured.`, "error");
+      addLog(`Please set VITE_GEMINI_URL in your .env file.`, "error");
       setPhase("error");
       return;
     }
